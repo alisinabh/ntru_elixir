@@ -30,6 +30,7 @@ defmodule ExNtru.Mixfile do
   defp deps do
     [
       {:elixir_make, "~> 0.4", runtime: false},
+      {:ex_doc, "~> 0.18.1", runtime: false}
     ]
   end
 end

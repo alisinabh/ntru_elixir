@@ -11,8 +11,13 @@ defmodule ExNtru.Base do
     :erlang.load_nif(path, 0)
   end
 
-  def gen_key_pair(key_type \\ :NTRU_DEFAULT_PARAMS_128_BITS, rng \\ :NTRU_RNG_DEFAULT)
+  def gen_key_pair(ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS, rng \\ :NTRU_RNG_DEFAULT)
   def gen_key_pair(_, _) do
     raise "Function gen_key_pair is not implemented!"
+  end
+
+  def encrypt(pub_key, data, ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS)
+  def encrypt(_, _, _) do
+    raise "Function encrypt is not implemented!"
   end
 end
