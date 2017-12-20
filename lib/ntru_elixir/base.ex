@@ -1,4 +1,4 @@
-defmodule ExNtru.Base do
+defmodule NtruElixir.Base do
   @moduledoc """
   Base libntru nif interface
   """
@@ -7,7 +7,7 @@ defmodule ExNtru.Base do
 
   @doc false
   def load_nifs do
-    path = :filename.join(:code.priv_dir(:ex_ntru), 'ntru_nif')
+    path = :filename.join(:code.priv_dir(:ntru_elixir), 'ntru_nif')
     :erlang.load_nif(path, 0)
   end
 

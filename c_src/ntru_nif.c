@@ -270,4 +270,4 @@ static ErlNifFunc nif_funcs[] = {
   {"decrypt", 4, decrypt}
 };
 
-ERL_NIF_INIT(Elixir.ExNtru.Base, nif_funcs, NULL, NULL, NULL, NULL)
+ERL_NIF_INIT(Elixir.NtruElixir.Base, nif_funcs, NULL, NULL, NULL, NULL)

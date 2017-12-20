@@ -1,4 +1,4 @@
-defmodule ExNtru.Mixfile do
+defmodule NtruElixir.Mixfile do
   use Mix.Project
 
   @version "0.1.0"
@@ -9,7 +9,7 @@ defmodule ExNtru.Mixfile do
 
   def project do
     [
-      app: :ex_ntru,
+      app: :ntru_elixir,
       version: @version,
       elixir: "~> 1.3",
       description: @description,

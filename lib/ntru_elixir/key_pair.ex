@@ -1,15 +1,16 @@
-defmodule ExNtru.KeyPair do
+defmodule NtruElixir.KeyPair do
   @moduledoc """
   This module holds functions to generate | save | and converting
   NTRU public and private keys.
   """
   # @enforce_keys [:pub_key]
+
+  alias NtruElixir.Base
+
   defstruct [:pub_key, :priv_key]
 
   @type t ::
     %__MODULE__{pub_key: binary(), priv_key: binary()}
-
-  alias ExNtru.Base
 
   @typedoc """
   These are NTRU key strengths. It is recommended to Use one of:
@@ -24,12 +25,28 @@ defmodule ExNtru.KeyPair do
   For more information please visit:
   [libntru - Parameter Sets](https://github.com/tbuktu/libntru#parameter-sets)
   """
-  @type ntru_strength :: :EES401EP1 | :EES541EP1 | :EES659EP1 |
-   :NTRU_DEFAULT_PARAMS_112_BITS | :EES449EP1 | :EES613EP1 | :EES761EP1 |
-   :EES439EP1 | :EES443EP1 | :NTRU_DEFAULT_PARAMS_128_BITS | :EES677EP1 |
-   :EES887EP1 | :EES1087EP1 | :EES593EP1 | :EES587EP1 |
-   :NTRU_DEFAULT_PARAMS_192_BITS | :EES1087EP2 | :EES1171EP1 | :EES1499EP1 |
-   :EES743EP1 | :NTRU_DEFAULT_PARAMS_256_BITS
+  @type ntru_strength ::
+          :EES401EP1
+          | :EES541EP1
+          | :EES659EP1
+          | :NTRU_DEFAULT_PARAMS_112_BITS
+          | :EES449EP1
+          | :EES613EP1
+          | :EES761EP1
+          | :EES439EP1
+          | :EES443EP1
+          | :NTRU_DEFAULT_PARAMS_128_BITS
+          | :EES677EP1
+          | :EES887EP1
+          | :EES1087EP1
+          | :EES593EP1
+          | :EES587EP1
+          | :NTRU_DEFAULT_PARAMS_192_BITS
+          | :EES1087EP2
+          | :EES1171EP1
+          | :EES1499EP1
+          | :EES743EP1
+          | :NTRU_DEFAULT_PARAMS_256_BITS
 
   @doc """
   Generates an NTRU key pair with given strength

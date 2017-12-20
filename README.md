@@ -1,4 +1,4 @@
-# ExNtru
+# NtruElixir
 
 A wrapper around [libntru](https://github.com/tbuktu/libntru) using NIFs.
 
@@ -6,12 +6,12 @@ A wrapper around [libntru](https://github.com/tbuktu/libntru) using NIFs.
 
 ## Installation
 
-Add `:ex_ntru` to your deps.
+Add `:ntru_elixir` to your deps.
 
 ```elixir
 def deps do
   [
-    {:ex_ntru, "~> 0.1.0"}
+    {:ntru_elixir, "~> 0.1.0"}
   ]
 end
 ```

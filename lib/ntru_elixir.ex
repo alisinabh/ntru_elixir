@@ -1,6 +1,6 @@
-defmodule ExNtru do
+defmodule NtruElixir do
   @moduledoc """
-  Documentation for ExNtru.
+  Documentation for NtruElixir.
   """
 
   @doc """
@@ -8,7 +8,7 @@ defmodule ExNtru do
 
   ## Examples
 
-      iex> ExNtru.hello
+      iex> NtruElixir.hello
       :world
 
   """
