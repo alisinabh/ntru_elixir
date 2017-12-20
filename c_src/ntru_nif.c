@@ -152,55 +152,122 @@ encrypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     || !enif_inspect_binary(env, argv[1], &inp_data))
     return enif_make_badarg(env);
 
-    /* encryption */
-    uint8_t data[inp_data.size];
-    uint8_t enc[ntru_enc_len(&params)];
+  /* encryption */
+  uint8_t data[inp_data.size];
+  uint8_t enc[ntru_enc_len(&params)];
 
-    for (size_t i = 0; i < sizeof(data); i++) {
-      data[i] = inp_data.data[i];
-    }
+  for (size_t i = 0; i < sizeof(data); i++) {
+    data[i] = inp_data.data[i];
+  }
 
-    uint8_t pub_data[pub_bin.size];
-    for (size_t i = 0; i < sizeof(pub_data); i++) {
-      pub_data[i] = pub_bin.data[i];
-    }
+  uint8_t pub_data[pub_bin.size];
+  for (size_t i = 0; i < sizeof(pub_data); i++) {
+    pub_data[i] = pub_bin.data[i];
+  }
 
-    // uint8_t priv_data[priv_bin.size];
-    // for (size_t i = 0; i < sizeof(priv_data); i++) {
-    //   priv_data[i] = priv_bin.data[i];
-    // }
+  // uint8_t priv_data[priv_bin.size];
+  // for (size_t i = 0; i < sizeof(priv_data); i++) {
+  //   priv_data[i] = priv_bin.data[i];
+  // }
 
-    //NtruEncKeyPair kp;
+  //NtruEncKeyPair kp;
 
-    NtruEncPubKey pub_key;
-    ntru_import_pub(pub_data, &pub_key);
+  NtruEncPubKey pub_key;
+  ntru_import_pub(pub_data, &pub_key);
 
-    NtruRandGen rng_def = NTRU_RNG_DEFAULT;
-    NtruRandContext rand_ctx_def;
-    if (ntru_rand_init(&rand_ctx_def, &rng_def) != NTRU_SUCCESS)
-        return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "init_rand_fail"));
+  NtruRandGen rng_def = NTRU_RNG_DEFAULT;
+  NtruRandContext rand_ctx_def;
+  if (ntru_rand_init(&rand_ctx_def, &rng_def) != NTRU_SUCCESS)
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "init_rand_fail"));
 
-    if (ntru_encrypt(data, sizeof(data), &pub_key, &params, &rand_ctx_def, enc) != NTRU_SUCCESS)
-        return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "enc_fail"));
+  if (ntru_encrypt(data, sizeof(data), &pub_key, &params, &rand_ctx_def, enc) != NTRU_SUCCESS)
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "enc_fail"));
 
-    if (ntru_rand_release(&rand_ctx_def) != NTRU_SUCCESS)
-        return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "release_rnd_fail"));
+  if (ntru_rand_release(&rand_ctx_def) != NTRU_SUCCESS)
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "release_rnd_fail"));
 
-    ErlNifBinary enc_out;
+  ErlNifBinary enc_out;
 
-    if(!enif_alloc_binary(sizeof(enc), &enc_out))
-      return enif_make_badarg(env);
+  if(!enif_alloc_binary(sizeof(enc), &enc_out))
+    return enif_make_badarg(env);
 
-    for (size_t i = 0; i < sizeof(enc); i++) {
-      enc_out.data[i] = enc[i];
-    }
+  for (size_t i = 0; i < sizeof(enc); i++) {
+    enc_out.data[i] = enc[i];
+  }
 
-    return enif_make_tuple2(env, enif_make_atom(env, "ok"), enif_make_binary(env, &enc_out));
+  return enif_make_tuple2(env, enif_make_atom(env, "ok"), enif_make_binary(env, &enc_out));
+}
+
+static ERL_NIF_TERM
+decrypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+  ErlNifBinary pub_bin, priv_bin, inp_data;
+
+  struct NtruEncParams params;
+
+  if (argc != 4
+    || !enif_inspect_binary(env, argv[0], &pub_bin)
+    || !enif_inspect_binary(env, argv[1], &priv_bin)
+    || determine_enc(env, argv[3], &params) != 1
+    || !enif_inspect_binary(env, argv[2], &inp_data))
+    return enif_make_badarg(env);
+
+  /* encryption */
+  uint8_t data[inp_data.size];
+  uint8_t dec[ntru_max_msg_len(&params)];
+
+  for (size_t i = 0; i < sizeof(data); i++) {
+    data[i] = inp_data.data[i];
+  }
+
+  uint8_t pub_data[pub_bin.size];
+  for (size_t i = 0; i < sizeof(pub_data); i++) {
+    pub_data[i] = pub_bin.data[i];
+  }
+
+  uint8_t priv_data[priv_bin.size];
+  for (size_t i = 0; i < sizeof(priv_data); i++) {
+    priv_data[i] = priv_bin.data[i];
+  }
+
+  NtruEncKeyPair kp;
+
+  NtruEncPubKey pub_key;
+  ntru_import_pub(pub_data, &pub_key);
+
+  NtruEncPrivKey priv_key;
+  ntru_import_priv(priv_data, &priv_key);
+
+  kp.pub = pub_key;
+  kp.priv = priv_key;
+
+  NtruRandGen rng_def = NTRU_RNG_DEFAULT;
+  NtruRandContext rand_ctx_def;
+  if (ntru_rand_init(&rand_ctx_def, &rng_def) != NTRU_SUCCESS)
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "init_rand_fail"));
+
+  uint16_t dec_len;
+  if (ntru_decrypt((uint8_t*)&data, &kp, &params, (uint8_t*)&dec, &dec_len) != NTRU_SUCCESS)
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "dec_fail"));
+
+  if (ntru_rand_release(&rand_ctx_def) != NTRU_SUCCESS)
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "release_rnd_fail"));
+
+  ErlNifBinary dec_out;
+
+  if(!enif_alloc_binary(dec_len, &dec_out))
+    return enif_make_badarg(env);
+
+  for (size_t i = 0; i < dec_len; i++) {
+    dec_out.data[i] = dec[i];
+  }
+
+  return enif_make_tuple2(env, enif_make_atom(env, "ok"), enif_make_binary(env, &dec_out));
 }
 
 static ErlNifFunc nif_funcs[] = {
   {"gen_key_pair", 2, gen_key_pair},
-  {"encrypt", 3, encrypt}
+  {"encrypt", 3, encrypt},
+  {"decrypt", 4, decrypt}
 };
 
 ERL_NIF_INIT(Elixir.ExNtru.Base, nif_funcs, NULL, NULL, NULL, NULL)
