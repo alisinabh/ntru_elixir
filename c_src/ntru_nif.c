@@ -201,19 +201,6 @@ gen_key_pair_multi(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
   NtruRandGen rng_def = NTRU_RNG_DEFAULT;
 
-  unsigned rng_atom_len;
-
-  // if(!enif_get_atom_length(env, argv[2], &rng_atom_len, ERL_NIF_LATIN1)) {
-  //   return enif_make_badarg(env);
-  // }
-  //
-  // char rng_def_str[rng_atom_len + 1];
-  // (void)memset(&rng_def_str, '\0', sizeof(rng_def_str));
-  //
-  // if (enif_get_atom(env, argv[2], rng_def_str, sizeof(rng_def_str), ERL_NIF_LATIN1) < 1) {
-  //   return enif_make_badarg(env);
-  // }
-
   NtruRandContext rand_ctx_def;
   if (ntru_rand_init(&rand_ctx_def, &rng_def) != NTRU_SUCCESS)
       return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "init_rand_fail"));
