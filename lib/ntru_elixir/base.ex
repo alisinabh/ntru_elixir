@@ -57,7 +57,7 @@ defmodule NtruElixir.Base do
    - ntru_params: NTRU parameters for key
    - rng: random number generator type (not implemented yet)
 
-  Returns a tuple in format {:ok, pub_bin, priv_bin} on success
+  Returns a tuple in format {:ok, pub_bin, priv_bin} on success.
   """
   @spec gen_key_pair(ntru_params_t, atom()) ::
           {:ok, binary(), binary()}
@@ -76,7 +76,7 @@ defmodule NtruElixir.Base do
    - priv_key: Binary of the private key
    - ntru_params: NTRU parameters for key
 
-  Returns a tuple in format `{:ok, pub_bin}` on success
+  Returns a tuple in format `{:ok, pub_bin}` on success.
   """
   @spec gen_pub_key(binary(), ntru_params_t) ::
           {:ok, binary()}
@@ -123,7 +123,7 @@ defmodule NtruElixir.Base do
     - data_bin: Binary of the data to encrypt
     - ntru_params: NTRU parameters for key
 
-  Returns a tuple like `{:ok, enc_bin}` on success
+  Returns a tuple like `{:ok, enc_bin}` on success.
   """
   @spec encrypt(binary(), binary(), ntru_params_t) ::
           {:ok, binary()}
@@ -135,6 +135,21 @@ defmodule NtruElixir.Base do
     raise "Function encrypt is not implemented!"
   end
 
+  @doc """
+  Decrypts a binary with a given public_key and private_key
+
+  ## Parameters
+    - pub_key: The public key in binary format (should be same as encryption key)
+    - priv_key: The private key in binary format
+    - enc_bin: encrypted data as binary
+
+  Returns a tuple like `{:ok, dec_bin}` on success.
+  """
+  @spec decrypt(binary(), binary(), binary(), ntru_params_t) ::
+          {:ok, binary()}
+          | {:error, :init_rand_fail}
+          | {:error, :dec_fail}
+          | {:error, :release_rnd_fail}
   def decrypt(pub_key, priv_key, enc_bin, ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS)
   def decrypt(_, _, _, _) do
     raise "Function decrypt is not implemented!"
