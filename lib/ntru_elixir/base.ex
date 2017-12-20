@@ -16,6 +16,20 @@ defmodule NtruElixir.Base do
     raise "Function gen_key_pair is not implemented!"
   end
 
+  def gen_pub_key(priv_key, ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS)
+  def gen_pub_key(_, _) do
+    raise "Function gen_pub_key is not imeplemented!"
+  end
+
+  def gen_key_pair_multi(
+        pub_count,
+        ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS,
+        rng \\ :NTRU_RNG_DEFAULT
+  )
+  def gen_key_pair_multi(_, _, _) do
+    raise "Function gen_key_pair_multi is not implemented!"
+  end
+
   def encrypt(pub_key, data_bin, ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS)
   def encrypt(_, _, _) do
     raise "Function encrypt is not implemented!"

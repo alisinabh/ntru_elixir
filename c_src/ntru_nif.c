@@ -141,6 +141,129 @@ gen_key_pair(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 static ERL_NIF_TERM
+gen_pub_key(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+  ErlNifBinary pub_bin, priv_bin;
+
+  struct NtruEncParams params;
+
+  if(argc != 2
+    || !enif_inspect_binary(env, argv[0], &priv_bin)
+    || determine_enc(env, argv[1], &params) != 1)
+    return enif_make_badarg(env);
+
+  uint8_t priv_data[priv_bin.size];
+  for (size_t i = 0; i < sizeof(priv_data); i++) {
+    priv_data[i] = priv_bin.data[i];
+  }
+
+  NtruEncPrivKey priv_key;
+  ntru_import_priv(priv_data, &priv_key);
+
+  NtruRandGen rng_def = NTRU_RNG_DEFAULT;
+  NtruRandContext rand_ctx_def;
+  if (ntru_rand_init(&rand_ctx_def, &rng_def) != NTRU_SUCCESS)
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "init_rand_fail"));
+
+  NtruEncPubKey pub_key;
+
+  if (ntru_gen_pub(&params, &priv_key, &pub_key, &rand_ctx_def) != NTRU_SUCCESS)
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "pub_gen_fail"));
+
+  int pub_len = ntru_pub_len(&params);
+  uint8_t pub_arr[pub_len];
+  ntru_export_pub(&pub_key, pub_arr);
+
+  if (!enif_alloc_binary(pub_len, &pub_bin))
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "pub_alloc_fail"));
+
+  for (int i = 0; i < pub_len; i++) {
+    pub_bin.data[i] = pub_arr[i];
+  }
+
+  return enif_make_tuple2(env, enif_make_atom(env, "ok"), enif_make_binary(env, &pub_bin));
+}
+
+static ERL_NIF_TERM
+gen_key_pair_multi(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+
+  if (argc != 3) {
+    return enif_make_badarg(env);
+  }
+
+  struct NtruEncParams params;
+  if(determine_enc(env, argv[1], &params) != 1)
+    return enif_make_badarg(env);
+
+  int pub_count;
+
+  if(!enif_get_int(env, argv[0], &pub_count))
+    return enif_make_badarg(env);
+
+  NtruRandGen rng_def = NTRU_RNG_DEFAULT;
+
+  unsigned rng_atom_len;
+
+  // if(!enif_get_atom_length(env, argv[2], &rng_atom_len, ERL_NIF_LATIN1)) {
+  //   return enif_make_badarg(env);
+  // }
+  //
+  // char rng_def_str[rng_atom_len + 1];
+  // (void)memset(&rng_def_str, '\0', sizeof(rng_def_str));
+  //
+  // if (enif_get_atom(env, argv[2], rng_def_str, sizeof(rng_def_str), ERL_NIF_LATIN1) < 1) {
+  //   return enif_make_badarg(env);
+  // }
+
+  NtruRandContext rand_ctx_def;
+  if (ntru_rand_init(&rand_ctx_def, &rng_def) != NTRU_SUCCESS)
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "init_rand_fail"));
+
+  NtruEncPubKey pubs[pub_count];
+  NtruEncPrivKey priv;
+  if(ntru_gen_key_pair_multi(&params, &priv, pubs, &rand_ctx_def, pub_count) != NTRU_SUCCESS)
+    return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "keygen_fail"));
+
+  if (ntru_rand_release(&rand_ctx_def) != NTRU_SUCCESS)
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "release_rnd_fail"));
+
+  ERL_NIF_TERM pubs_term[pub_count];
+  int pub_len = ntru_pub_len(&params);
+
+  for (size_t i = 0; i < pub_count; i++) {
+    uint8_t pub_arr[pub_len];
+    ErlNifBinary tmp_bin;
+
+    ntru_export_pub(&pubs[i], pub_arr);
+
+    if (!enif_alloc_binary(pub_len, &tmp_bin))
+      return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "keygen_fail"));
+
+    for (int j = 0; j < pub_len; j++) {
+      tmp_bin.data[j] = pub_arr[j];
+    }
+
+    pubs_term[i] = enif_make_binary(env, &tmp_bin);
+  }
+
+  int priv_len = ntru_priv_len(&params);
+  uint8_t priv_arr[priv_len];
+  ntru_export_priv(&priv, priv_arr);
+
+  ErlNifBinary priv_bin;
+  if (!enif_alloc_binary(priv_len, &priv_bin))
+    return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "priv_fail"));
+
+  for (size_t i = 0; i < priv_len; i++) {
+    priv_bin.data[i] = priv_arr[i];
+  }
+
+  return enif_make_tuple3(env,
+            enif_make_atom(env, "ok"),
+            enif_make_list_from_array(env, pubs_term, pub_count),
+            enif_make_binary(env, &priv_bin));
+}
+
+static ERL_NIF_TERM
 encrypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   ErlNifBinary pub_bin, inp_data;
 
@@ -266,6 +389,8 @@ decrypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
 static ErlNifFunc nif_funcs[] = {
   {"gen_key_pair", 2, gen_key_pair},
+  {"gen_pub_key", 2, gen_pub_key},
+  {"gen_key_pair_multi", 3, gen_key_pair_multi},
   {"encrypt", 3, encrypt},
   {"decrypt", 4, decrypt}
 };
