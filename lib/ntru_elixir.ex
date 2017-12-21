@@ -21,37 +21,72 @@ defmodule NtruElixir do
   Returns a tuple like {:ok, %KeyPair{...}} on success
   """
   @spec generate_key_pair(Base.ntru_params_t) ::
-          {:ok, %KeyPair{}}
+          {:ok, List.t}
           | {:error, atom()}
-  def generate_key_pair(pub_count, ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS)
-
+  def generate_key_pair(
+        pub_count \\ 1,
+        ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS
+  )
   def generate_key_pair(1, ntru_params) do
     case Base.gen_key_pair(ntru_params, :default) do
       {:ok, pub_key, priv_key} ->
-        KeyPair.new(pub_key, priv_key)
+        [KeyPair.new!(pub_key, ntru_params, priv_key)]
       {:error, reason} ->
         Logger.error "Generating single key error: #{inspect(reason)}"
+        {:error, reason}
       error ->
         Logger.error "Unknown error in single key pair generation! #{inspect(error)}"
+        {:error, :unknown}
     end
   end
 
   def generate_key_pair(pub_count, ntru_params) do
     case Base.gen_key_pair_multi(pub_count, ntru_params, :default) do
       {:ok, pub_keys, priv_key} ->
-        KeyPair.new(pub_keys, priv_key)
+        {:ok, get_key_pairs(priv_key, ntru_params, pub_keys)}
       {:error, reason} ->
         Logger.error "Generating single key error: #{inspect(reason)}"
+        {:error, reason}
       error ->
         Logger.error "Unknown error in single key pair generation! #{inspect(error)}"
+        {:error, :unknown}
     end
   end
 
-  def generate_public_key(priv_key, ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS)
-  def generate_public_key(priv_key, ntru_params) do
+  @doc """
+  Generates an NTRU key pair with given ntru_params and private key
+
+  Note that in NTRU a single private key can have multiple public keys.
+  But you'll need the public key whick encrypted the data in order to decrypt it.
+
+  For more information on ntru_params please visit
+  [libntru - Parameter Sets](https://github.com/tbuktu/libntru#parameter-sets)
+
+  ## Parameters
+    - priv_key: Binary of the private key
+    - pub_count: Number of public keys to generate
+    - ntru_params: An atom representing the params of generated NTRU keypair.
+
+  Returns a tuple like {:ok, %KeyPair{...}} on success
+  """
+  @spec generate_key_pair(binary(), Integer.t, Base.ntru_params_t) ::
+          {:ok, List.t}
+          | {:error, atom()}
+  def generate_key_pair(priv_key, pub_count, ntru_params) when is_binary(priv_key) do
+    key_pairs = do_generate_key_pair(priv_key, ntru_params, [], pub_count)
+    {:ok, key_pairs}
+  end
+
+  defp do_generate_key_pair(_priv_key, _ntru_params, acc, 0), do: acc
+  defp do_generate_key_pair(priv_key, ntru_params, acc, pub_cnt) do
     case Base.gen_pub_key(priv_key, ntru_params) do
       {:ok, pub_key} ->
-        {:ok. pub_key}
+        do_generate_key_pair(
+          priv_key,
+          ntru_params,
+          [KeyPair.new!(pub_key, ntru_params, priv_key) | acc],
+          pub_cnt - 1
+        )
       {:error, reason} ->
         Logger.error "Generating extra pub key error: #{inspect(reason)}"
       error ->
@@ -60,24 +95,123 @@ defmodule NtruElixir do
   end
 
   @doc """
-  Adds another public key to a given KeyPair
+  Encrypts a given binary with a keypair
 
-  ## Parameters:
-    - key_pair: a KeyPair struct containing a private key
-    - ntru_params: An atom representing the params of generated NTRU keypair.
+  ## Parameters
+    - kp: The KeyPair which holds the public key and ntru_params
+    - data_bin: the binary to encrypt
+    - ntru_params(optional): ntru params. if not provided the params in kp will
+    be used
 
-  Returns the same KeyPair struct with a new public key added to top of public
-  keys.
+  Returns a tuple like `{:ok, encrypted_bin}` on success.
   """
-  @spec add_public_key(KeyPair.t, Base.ntru_params_t) :: KeyPair.t
-  def add_public_key(key_pair, ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS) do
-    case generate_public_key(key_pair.priv_key, ntru_params) do
-      {:ok, pub_key} ->
-        %KeyPair{key_pair | pub_keys: [pub_key | key_pair.pub_keys]}
+  @spec encrypt(KeyPair.t, binary()) ::
+          {:ok, binary()}
+          | {:error, atom()}
+  def encrypt(kp, data_bin, ntru_params) do
+    case Base.encrypt(kp.pub_key, data_bin, ntru_params) do
+      {:ok, enc_data} ->
+        {:ok, enc_data}
       {:error, reason} ->
-        raise "Key gen failed on add key #{inspect(reason)}"
+        Logger.error "Encrypt failed: #{inspect(reason)}"
+        {:error, reason}
       error ->
-        raise "Key gen failed on add key unknown error #{inspect(error)}"
+        Logger.error "Encrypt failed unknown error: #{inspect(error)}"
+        {:error, :unknown}
     end
   end
+
+  @doc "Bang version of `encrypt`"
+  @spec encrypt!(KeyPair.t, binary(), Base.ntru_params_t) :: binary
+  def encrypt!(kp, data_bin, ntru_params) do
+    {:ok, enc_data} = encrypt(kp, data_bin, ntru_params)
+    enc_data
+  end
+
+  @doc false
+  @spec encrypt(KeyPair.t, binary()) ::
+          {:ok, binary()}
+          | {:error, atom()}
+  def encrypt(kp, data_bin), do: encrypt(kp, data_bin, kp.ntru_params)
+
+  @doc false
+  @spec encrypt!(KeyPair.t, binary()) :: binary()
+  def encrypt!(kp, data_bin) do
+    {:ok, enc_data} = encrypt(kp, data_bin)
+    enc_data
+  end
+
+  @doc """
+  Decrypts a given binary with a keypair
+
+  Note that the KeyPair should contain the `priv_key` in order to decrypt!
+
+  ## Parameters
+    - kp: The KeyPair which holds the public key, private_key and ntru_params
+    - enc_data: the binary to decry[t]
+    - ntru_params(optional): ntru params. if not provided the params in kp will
+    be used
+
+  Returns a tuple like `{:ok, encrypted_bin}` on success.
+  """
+  @spec decrypt(KeyPair.t, binary(), Base.ntru_params_t) ::
+          {:ok, binary()}
+          | {:error, atom()}
+  def decrypt(kp, enc_data, ntru_params) do
+    case kp do
+      %{priv_key: nil} ->
+        {:error, :no_private_key_in_pair}
+      _ ->
+        do_decrypt(kp, enc_data, ntru_params)
+    end
+  end
+
+  @doc "Bang version of `decrypt`"
+  @spec decrypt!(KeyPair.t, binary(), Base.ntru_params_t) :: binary()
+  def decrypt!(kp, enc_data, ntru_params) do
+    {:ok, dec_data} = decrypt(kp, enc_data, ntru_params)
+    dec_data
+  end
+
+  @doc false
+  @spec decrypt(KeyPair.t, binary()) ::
+          {:ok, binary()}
+          | {:error, atom()}
+  def decrypt(kp, enc_data) do
+    decrypt(kp, enc_data, kp.ntru_params)
+  end
+
+  @doc false
+  @spec decrypt!(KeyPair.t, binary()) :: binary()
+  def decrypt!(kp, enc_data) do
+    decrypt!(kp, enc_data, kp.ntru_params)
+  end
+
+  defp do_decrypt(kp, enc_data, ntru_params) do
+    case Base.decrypt(kp.pub_key, kp.priv_key, enc_data, ntru_params) do
+      {:ok, dec_data} ->
+        {:ok, dec_data}
+        {:error, reason} ->
+          Logger.error "Decrypt failed: #{inspect(reason)}"
+          {:error, reason}
+        error ->
+          Logger.error "Decrypt failed unknown error: #{inspect(error)}"
+          {:error, :unknown}
+    end
+  end
+
+  #
+  # Helpers
+  #
+
+  defp get_key_pairs(priv_key, ntru_params, pub_keys, acc \\ [])
+  defp get_key_pairs(priv_key, ntru_params, [pub_key | tail], acc), do:
+    get_key_pairs(
+      priv_key,
+      ntru_params,
+      tail,
+      [KeyPair.new(pub_key, ntru_params, priv_key) | acc]
+    )
+  defp get_key_pairs(_, _, [], acc), do: acc
+
 end
