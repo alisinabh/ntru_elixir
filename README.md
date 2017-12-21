@@ -60,8 +60,8 @@ private key.
 Note that the public key should be the same as encryption public key.
 
 ```elixir
-NtruElixir.encrypt(key_pair, binary_to_encrypt)
-{:ok, encrypted_binary}
+NtruElixir.decrypt(key_pair, binary_to_decrypt)
+{:ok, decrypted_binary}
 ```
 
 ## License
