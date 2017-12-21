@@ -37,7 +37,7 @@ defmodule NtruElixir.Mixfile do
     [
       {:elixir_make, "~> 0.4", runtime: false},
       {:ex_doc, "~> 0.18.1", runtime: false},
-      {:excoveralls, ">= 0.0.0 ", only: :test},
+      {:excoveralls, ">= 0.0.0 ", only: :test}
     ]
   end
 end
