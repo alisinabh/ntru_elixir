@@ -114,7 +114,8 @@ gen_key_pair(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
   if (enif_alloc_binary(pub_len, &pub_bin))
   {
-    for (int i = 0; i < pub_len; i++) {
+    size_t i;
+    for (i = 0; i < pub_len; i++) {
       pub_bin.data[i] = pub_arr[i];
     }
 
@@ -124,7 +125,7 @@ gen_key_pair(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     if(enif_alloc_binary(priv_len, &priv_bin))
     {
-      for (int i = 0; i < priv_len; i++) {
+      for (i = 0; i < priv_len; i++) {
         priv_bin.data[i] = priv_arr[i];
       }
 
@@ -152,7 +153,8 @@ gen_pub_key(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return enif_make_badarg(env);
 
   uint8_t priv_data[priv_bin.size];
-  for (size_t i = 0; i < sizeof(priv_data); i++) {
+  size_t i;
+  for (i = 0; i < sizeof(priv_data); i++) {
     priv_data[i] = priv_bin.data[i];
   }
 
@@ -176,7 +178,7 @@ gen_pub_key(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   if (!enif_alloc_binary(pub_len, &pub_bin))
       return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "pub_alloc_fail"));
 
-  for (int i = 0; i < pub_len; i++) {
+  for (i = 0; i < pub_len; i++) {
     pub_bin.data[i] = pub_arr[i];
   }
 
@@ -216,7 +218,8 @@ gen_key_pair_multi(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   ERL_NIF_TERM pubs_term[pub_count];
   int pub_len = ntru_pub_len(&params);
 
-  for (size_t i = 0; i < pub_count; i++) {
+  size_t i;
+  for (i = 0; i < pub_count; i++) {
     uint8_t pub_arr[pub_len];
     ErlNifBinary tmp_bin;
 
@@ -225,7 +228,8 @@ gen_key_pair_multi(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_alloc_binary(pub_len, &tmp_bin))
       return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "keygen_fail"));
 
-    for (int j = 0; j < pub_len; j++) {
+    size_t j;
+    for (j = 0; j < pub_len; j++) {
       tmp_bin.data[j] = pub_arr[j];
     }
 
@@ -240,7 +244,7 @@ gen_key_pair_multi(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   if (!enif_alloc_binary(priv_len, &priv_bin))
     return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, "priv_fail"));
 
-  for (size_t i = 0; i < priv_len; i++) {
+  for (i = 0; i < priv_len; i++) {
     priv_bin.data[i] = priv_arr[i];
   }
 
@@ -266,12 +270,13 @@ encrypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   uint8_t data[inp_data.size];
   uint8_t enc[ntru_enc_len(&params)];
 
-  for (size_t i = 0; i < sizeof(data); i++) {
+  size_t i;
+  for (i = 0; i < sizeof(data); i++) {
     data[i] = inp_data.data[i];
   }
 
   uint8_t pub_data[pub_bin.size];
-  for (size_t i = 0; i < sizeof(pub_data); i++) {
+  for (i = 0; i < sizeof(pub_data); i++) {
     pub_data[i] = pub_bin.data[i];
   }
 
@@ -301,7 +306,7 @@ encrypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   if(!enif_alloc_binary(sizeof(enc), &enc_out))
     return enif_make_badarg(env);
 
-  for (size_t i = 0; i < sizeof(enc); i++) {
+  for (i = 0; i < sizeof(enc); i++) {
     enc_out.data[i] = enc[i];
   }
 
@@ -325,17 +330,18 @@ decrypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   uint8_t data[inp_data.size];
   uint8_t dec[ntru_max_msg_len(&params)];
 
-  for (size_t i = 0; i < sizeof(data); i++) {
+  size_t i;
+  for (i = 0; i < sizeof(data); i++) {
     data[i] = inp_data.data[i];
   }
 
   uint8_t pub_data[pub_bin.size];
-  for (size_t i = 0; i < sizeof(pub_data); i++) {
+  for (i = 0; i < sizeof(pub_data); i++) {
     pub_data[i] = pub_bin.data[i];
   }
 
   uint8_t priv_data[priv_bin.size];
-  for (size_t i = 0; i < sizeof(priv_data); i++) {
+  for (i = 0; i < sizeof(priv_data); i++) {
     priv_data[i] = priv_bin.data[i];
   }
 
@@ -367,7 +373,7 @@ decrypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   if(!enif_alloc_binary(dec_len, &dec_out))
     return enif_make_badarg(env);
 
-  for (size_t i = 0; i < dec_len; i++) {
+  for (i = 0; i < dec_len; i++) {
     dec_out.data[i] = dec[i];
   }
 
