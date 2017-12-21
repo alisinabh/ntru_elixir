@@ -1,7 +1,7 @@
 defmodule NtruElixir.Mixfile do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.0.0"
 
   @description """
   libntru wrapper for elixir. NTRU is a post quantom cryptography algorithm.
