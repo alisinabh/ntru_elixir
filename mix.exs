@@ -15,7 +15,13 @@ defmodule NtruElixir.Mixfile do
       description: @description,
       start_permanent: Mix.env == :prod,
       compilers: [:elixir_make] ++ Mix.compilers(),
-      deps: deps()
+      deps: deps(),
+      preferred_cli_env:
+        ["coveralls": :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test],
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
@@ -30,7 +36,8 @@ defmodule NtruElixir.Mixfile do
   defp deps do
     [
       {:elixir_make, "~> 0.4", runtime: false},
-      {:ex_doc, "~> 0.18.1", runtime: false}
+      {:ex_doc, "~> 0.18.1", runtime: false},
+      {:excoveralls, ">= 0.0.0 ", only: :test},
     ]
   end
 end

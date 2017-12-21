@@ -30,9 +30,9 @@ defmodule NtruElixir do
   def generate_key_pair(1, ntru_params) do
     case Base.gen_key_pair(ntru_params, :default) do
       {:ok, pub_key, priv_key} ->
-        [KeyPair.new!(pub_key, ntru_params, priv_key)]
+        {:ok, [KeyPair.new!(pub_key, ntru_params, priv_key)]}
       {:error, reason} ->
-        Logger.error "Generating single key error: #{inspect(reason)}"
+        Logger.debug "Generating single key error: #{inspect(reason)}"
         {:error, reason}
       error ->
         Logger.error "Unknown error in single key pair generation! #{inspect(error)}"
@@ -45,7 +45,7 @@ defmodule NtruElixir do
       {:ok, pub_keys, priv_key} ->
         {:ok, get_key_pairs(priv_key, ntru_params, pub_keys)}
       {:error, reason} ->
-        Logger.error "Generating single key error: #{inspect(reason)}"
+        Logger.debug "Generating single key error: #{inspect(reason)}"
         {:error, reason}
       error ->
         Logger.error "Unknown error in single key pair generation! #{inspect(error)}"
@@ -88,7 +88,7 @@ defmodule NtruElixir do
           pub_cnt - 1
         )
       {:error, reason} ->
-        Logger.error "Generating extra pub key error: #{inspect(reason)}"
+        Logger.debug "Generating extra pub key error: #{inspect(reason)}"
       error ->
         Logger.error "Unknown error in gen pub key #{inspect(error)}"
     end
@@ -113,7 +113,7 @@ defmodule NtruElixir do
       {:ok, enc_data} ->
         {:ok, enc_data}
       {:error, reason} ->
-        Logger.error "Encrypt failed: #{inspect(reason)}"
+        Logger.debug "Encrypt failed: #{inspect(reason)}"
         {:error, reason}
       error ->
         Logger.error "Encrypt failed unknown error: #{inspect(error)}"
@@ -192,7 +192,7 @@ defmodule NtruElixir do
       {:ok, dec_data} ->
         {:ok, dec_data}
         {:error, reason} ->
-          Logger.error "Decrypt failed: #{inspect(reason)}"
+          Logger.debug "Decrypt failed: #{inspect(reason)}"
           {:error, reason}
         error ->
           Logger.error "Decrypt failed unknown error: #{inspect(error)}"
@@ -210,7 +210,7 @@ defmodule NtruElixir do
       priv_key,
       ntru_params,
       tail,
-      [KeyPair.new(pub_key, ntru_params, priv_key) | acc]
+      [KeyPair.new!(pub_key, ntru_params, priv_key) | acc]
     )
   defp get_key_pairs(_, _, [], acc), do: acc
 
