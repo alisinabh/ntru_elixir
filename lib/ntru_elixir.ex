@@ -73,11 +73,10 @@ defmodule NtruElixir do
           {:ok, List.t}
           | {:error, atom()}
   def generate_key_pair(priv_key, pub_count, ntru_params) when is_binary(priv_key) do
-    key_pairs = do_generate_key_pair(priv_key, ntru_params, [], pub_count)
-    {:ok, key_pairs}
+    do_generate_key_pair(priv_key, ntru_params, [], pub_count)
   end
 
-  defp do_generate_key_pair(_priv_key, _ntru_params, acc, 0), do: acc
+  defp do_generate_key_pair(_, _, acc, 0) when is_list(acc), do: {:ok, acc}
   defp do_generate_key_pair(priv_key, ntru_params, acc, pub_cnt) do
     case Base.gen_pub_key(priv_key, ntru_params) do
       {:ok, pub_key} ->
@@ -89,10 +88,13 @@ defmodule NtruElixir do
         )
       {:error, reason} ->
         Logger.debug "Generating extra pub key error: #{inspect(reason)}"
+        {:error, reason}
       error ->
         Logger.error "Unknown error in gen pub key #{inspect(error)}"
+        {:error, :unknown}
     end
   end
+  defp do_generate_key_pair(_, _, _, _), do: {:error, :bad_args}
 
   @doc """
   Encrypts a given binary with a keypair

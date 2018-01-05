@@ -29,20 +29,28 @@ defmodule NtruElixirTest.BaseTest do
 
   @sample_input "This is a message from alice to bob."
 
-  test "Create a new keypair" do
+  test "create a new keypair" do
     assert :ok = test_gen_keypair(@all_ntru_params)
   end
 
-  test "Generate a new pub key for a given private key" do
+  test "generate a new pub key for a given private key" do
     assert :ok = test_gen_pub_key(@all_ntru_params)
   end
 
-  test "Create a milti pub_key key pair" do
+  test "create a milti pub_key key pair" do
     assert :ok = test_gen_multi_pub_pair(@all_ntru_params)
   end
 
-  test "A successful encryption" do
+  test "a successful encryption" do
     assert :ok = test_success_encryption(@all_ntru_params)
+  end
+
+  test "default ntru params" do
+    assert {:ok, pub_key, priv_key} = NtruBase.gen_key_pair()
+    assert {:ok, pub_key} = NtruBase.gen_pub_key(priv_key)
+    assert {:ok, pub_keys, _priv_key} = NtruBase.gen_key_pair_multi(10)
+    assert {:ok, enc_bin} = NtruBase.encrypt(pub_key, "test data")
+    assert {:ok, "test data"} = NtruBase.decrypt(pub_key, priv_key, enc_bin)
   end
 
   defp test_success_encryption([ntru_params | tail]) do

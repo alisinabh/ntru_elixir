@@ -45,4 +45,19 @@ defmodule NtruElixirTest do
     assert {:error, :dec_fail} = NtruElixir.decrypt(state.keys.key2, enc_data)
   end
 
+  test "encrypt! and decrypt! functions", state do
+    bin = "test binary"
+    enc_data = NtruElixir.encrypt!(state.keys.key1, bin)
+
+    assert is_binary(enc_data)
+
+    assert ^bin = NtruElixir.decrypt!(state.keys.key1, enc_data)
+
+    enc_data = NtruElixir.encrypt!(state.keys.key1, bin, :NTRU_DEFAULT_PARAMS_128_BITS)
+
+    assert is_binary(enc_data)
+
+    assert ^bin = NtruElixir.decrypt!(state.keys.key1, enc_data, :NTRU_DEFAULT_PARAMS_128_BITS)
+  end
+
 end
