@@ -25,7 +25,10 @@ def deps do
 end
 ```
 
-## How to use
+## Documentation
+
+Please visit [hexdocs.pm/ntru_elixir](https://hexdocs.pm/ntru_elixir/NtruElixir.html)
+for complete documentations.
 
 ### Creating KeyPairs
 
