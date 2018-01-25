@@ -14,7 +14,7 @@ defmodule NtruElixirTest do
   end
 
   test "Single KeyPair generation" do
-    assert {:ok, [%KeyPair{}]} = NtruElixir.generate_key_pair
+    assert {:ok, [%KeyPair{}]} = NtruElixir.generate_key_pair()
   end
 
   test "Multi pub KeyPair generation" do
@@ -59,5 +59,4 @@ defmodule NtruElixirTest do
 
     assert ^bin = NtruElixir.decrypt!(state.keys.key1, enc_data, :NTRU_DEFAULT_PARAMS_128_BITS)
   end
-
 end
