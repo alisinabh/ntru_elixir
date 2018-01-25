@@ -5,7 +5,8 @@ defmodule NtruElixirTest.BaseTest do
 
   require Logger
 
-  @all_ntru_params [:EES401EP1,
+  @all_ntru_params [
+    :EES401EP1,
     :EES541EP1,
     :EES659EP1,
     :NTRU_DEFAULT_PARAMS_112_BITS,
@@ -25,7 +26,8 @@ defmodule NtruElixirTest.BaseTest do
     :EES1171EP1,
     :EES1499EP1,
     :EES743EP1,
-    :NTRU_DEFAULT_PARAMS_256_BITS]
+    :NTRU_DEFAULT_PARAMS_256_BITS
+  ]
 
   @sample_input "This is a message from alice to bob."
 
@@ -61,32 +63,42 @@ defmodule NtruElixirTest.BaseTest do
     case dec_result do
       {:ok, @sample_input} ->
         test_success_encryption(tail)
+
       {:ok, other_bin} ->
-        Logger.error("Decryption of '#{@sample_input}' resulted in wrong"
-                <> " decryption '#{other_bin}'")
+        Logger.error(
+          "Decryption of '#{@sample_input}' resulted in wrong" <> " decryption '#{other_bin}'"
+        )
+
         {:error, :wrong_decryption}
+
       {:error, reason} ->
         {:error, reason}
+
       error ->
         {:error, inspect(error)}
     end
   end
+
   defp test_success_encryption([]), do: :ok
 
   defp test_gen_multi_pub_pair([ntru_params | tail]) do
     pub_count = Enum.random(1..15)
     {:ok, pub_keys, _priv_key} = NtruElixir.Base.gen_key_pair_multi(pub_count, ntru_params)
-    case Enum.count pub_keys do
+
+    case Enum.count(pub_keys) do
       ^pub_count when is_list(pub_keys) ->
         test_gen_multi_pub_pair(tail)
+
       count ->
         {:error, :wrong_key_count}
     end
   end
+
   defp test_gen_multi_pub_pair([]), do: :ok
 
   defp test_gen_pub_key([ntru_params | tail]) do
     {:ok, pub, priv} = NtruBase.gen_key_pair(ntru_params)
+
     case NtruBase.gen_pub_key(priv, ntru_params) do
       {:ok, new_pub} ->
         if new_pub == pub do
@@ -94,24 +106,29 @@ defmodule NtruElixirTest.BaseTest do
         else
           test_gen_pub_key(tail)
         end
+
       {:error, reason} ->
         {:error, reason}
+
       error ->
         {:error, inspect(error)}
     end
   end
+
   defp test_gen_pub_key([]), do: :ok
 
   defp test_gen_keypair([ntru_params | tail]) do
     case NtruBase.gen_key_pair(ntru_params) do
       {:ok, _key, _priv_key} ->
         test_gen_keypair(tail)
+
       {:error, reason} ->
         {:error, reason}
+
       error ->
         {:error, inspect(error)}
     end
   end
-  defp test_gen_keypair([]), do: :ok
 
+  defp test_gen_keypair([]), do: :ok
 end

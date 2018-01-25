@@ -13,15 +13,16 @@ defmodule NtruElixir.Mixfile do
       version: @version,
       elixir: "~> 1.3",
       description: @description,
-      start_permanent: Mix.env == :prod,
+      start_permanent: Mix.env() == :prod,
       compilers: [:elixir_make] ++ Mix.compilers(),
       deps: deps(),
       package: package(),
-      preferred_cli_env:
-        ["coveralls": :test,
+      preferred_cli_env: [
+        coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
-        "coveralls.html": :test],
+        "coveralls.html": :test
+      ],
       test_coverage: [tool: ExCoveralls]
     ]
   end

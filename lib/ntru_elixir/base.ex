@@ -43,7 +43,6 @@ defmodule NtruElixir.Base do
           | :EES743EP1
           | :NTRU_DEFAULT_PARAMS_256_BITS
 
-
   @doc false
   def load_nifs do
     path = :filename.join(:code.priv_dir(:ntru_elixir), 'ntru_nif')
@@ -65,6 +64,7 @@ defmodule NtruElixir.Base do
           | {:error, :keygen_fail}
           | {:error, :release_rnd_fail}
   def gen_key_pair(ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS, rng \\ :NTRU_RNG_DEFAULT)
+
   def gen_key_pair(_, _) do
     raise "Function gen_key_pair is not implemented!"
   end
@@ -84,6 +84,7 @@ defmodule NtruElixir.Base do
           | {:error, :pub_gen_fail}
           | {:error, :pub_alloc_fail}
   def gen_pub_key(priv_key, ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS)
+
   def gen_pub_key(_, _) do
     raise "Function gen_pub_key is not imeplemented!"
   end
@@ -98,11 +99,8 @@ defmodule NtruElixir.Base do
 
   Returns a tuple like  `{:ok, [pub_key1, pub_key2], priv_key}` on success.
   """
-  @spec gen_key_pair_multi(
-          Integer.t,
-          ntru_params_t,
-          atom()) ::
-          {:ok, List.t, binary()}
+  @spec gen_key_pair_multi(Integer.t(), ntru_params_t, atom()) ::
+          {:ok, List.t(), binary()}
           | {:error, :init_rand_fail}
           | {:error, :keygen_fail}
           | {:error, :release_rnd_fail}
@@ -110,7 +108,8 @@ defmodule NtruElixir.Base do
         pub_count,
         ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS,
         rng \\ :NTRU_RNG_DEFAULT
-  )
+      )
+
   def gen_key_pair_multi(_, _, _) do
     raise "Function gen_key_pair_multi is not implemented!"
   end
@@ -131,6 +130,7 @@ defmodule NtruElixir.Base do
           | {:error, :enc_fail}
           | {:error, :release_rnd_fail}
   def encrypt(pub_key, data_bin, ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS)
+
   def encrypt(_, _, _) do
     raise "Function encrypt is not implemented!"
   end
@@ -151,6 +151,7 @@ defmodule NtruElixir.Base do
           | {:error, :dec_fail}
           | {:error, :release_rnd_fail}
   def decrypt(pub_key, priv_key, enc_bin, ntru_params \\ :NTRU_DEFAULT_PARAMS_128_BITS)
+
   def decrypt(_, _, _, _) do
     raise "Function decrypt is not implemented!"
   end
